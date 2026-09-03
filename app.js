@@ -98,7 +98,7 @@ function migrateLocalData(localData) {
     const next = { ...item };
     next.version = repositoryItem?.version || item.version || item.milestone || 'release_verXXXX';
     next.features = clone(repositoryItem?.features || item.features || item.deliverables || []);
-    const operators = item.operators || repositoryItem?.operators || [];
+    const operators = repositoryItem?.operators || item.operators || [];
     next.operators = operators.map(operator => typeof operator === 'string'
       ? { name: operator, done: false }
       : { name: operator.name || '', done: Boolean(operator.done) });
