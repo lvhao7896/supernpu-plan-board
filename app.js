@@ -39,9 +39,9 @@ const editorSections = {
     create: () => ({ id: `WORK-${Date.now().toString().slice(-4)}`, title: '新工作项', area: 'Operator', status: 'planned', priority: 'P1', description: '点击此处填写工作说明。', stages: defaultStages(), currentIssueSummary: '点击此处填写当前问题总结。', next: '点击此处填写下一步。' })
   },
   plans: {
-    label: '版本发布计划', description: '维护版本号、发布时间、版本定位和包含的特性。',
-    fields: [['id', '计划 ID', 'text'], ['version', '版本号', 'text'], ['target', '计划发布日期', 'date'], ['status', '状态', 'select', ['planned', 'in_progress', 'blocked', 'done']], ['priority', '优先级', 'select', ['P0', 'P1', 'P2', 'P3']], ['title', '版本定位', 'text'], ['description', '版本说明', 'textarea'], ['features', '本版本特性（逗号分隔）', 'list']],
-    create: () => ({ id: `PLAN-${Date.now().toString().slice(-4)}`, version: 'release_verXXXX', target: today(), status: 'planned', priority: 'P1', title: '新版本', description: '', features: [] })
+    label: '版本发布计划', description: '维护版本号、发布时间、发布内容、特性和预计增加的算子。',
+    fields: [['id', '计划 ID', 'text'], ['version', '版本号', 'text'], ['target', '计划发布日期', 'date'], ['status', '状态', 'select', ['planned', 'in_progress', 'blocked', 'done']], ['priority', '优先级', 'select', ['P0', 'P1', 'P2', 'P3']], ['title', '版本定位', 'text'], ['description', '计划发布内容', 'textarea'], ['features', '本版本特性（逗号分隔）', 'list'], ['operators', '预计增加的算子', 'operatorChecklist']],
+    create: () => ({ id: `PLAN-${Date.now().toString().slice(-4)}`, version: 'release_verXXXX', target: today(), status: 'planned', priority: 'P1', title: '新版本', description: '', features: [], operators: [] })
   },
   results: {
     label: '验证结果', description: '记录功能验证、精度校验和性能分析结论。',
@@ -92,6 +92,10 @@ function migrateLocalData(localData) {
     const next = { ...item };
     next.version = repositoryItem?.version || item.version || item.milestone || 'release_verXXXX';
     next.features = clone(repositoryItem?.features || item.features || item.deliverables || []);
+    const operators = item.operators || repositoryItem?.operators || [];
+    next.operators = operators.map(operator => typeof operator === 'string'
+      ? { name: operator, done: false }
+      : { name: operator.name || '', done: Boolean(operator.done) });
     delete next.milestone;
     delete next.deliverables;
     return next;
@@ -219,7 +223,13 @@ function renderInlineStage(stage, stageIndex) {
 
 function renderPlans() {
   document.querySelector('#planList').innerHTML = boardData.plans.map((item, index) => `
-    <article class="plan-item"><button type="button" class="card-edit" data-edit-record="plans" data-index="${index}" aria-label="编辑版本 ${escapeHtml(item.version)}">编辑</button><div class="plan-date"><span>${escapeHtml(item.version)}</span><small>计划发布</small><time>${escapeHtml(item.target)}</time></div><div class="plan-main"><div class="plan-title"><span class="work-id">${escapeHtml(item.id)}</span><h3>${escapeHtml(item.title)}</h3></div><p>${escapeHtml(item.description)}</p><b class="feature-label">本版本包含的特性</b><div class="version-features">${(item.features || []).map(value => `<span>${escapeHtml(value)}</span>`).join('')}</div></div><div class="plan-state"><span class="status ${escapeHtml(item.status)}">${statusLabels[item.status] || escapeHtml(item.status)}</span><b>${escapeHtml(item.priority)}</b></div></article>`).join('') || emptyState('还没有版本发布计划。');
+    <article class="plan-item"><button type="button" class="card-edit" data-edit-record="plans" data-index="${index}" aria-label="编辑版本 ${escapeHtml(item.version)}">编辑</button>
+      <div class="plan-release-column">
+        <div class="plan-card-head"><div><span class="plan-version">${escapeHtml(item.version)}</span><span class="work-id">${escapeHtml(item.id)}</span></div><div class="plan-state"><span class="status ${escapeHtml(item.status)}">${statusLabels[item.status] || escapeHtml(item.status)}</span><b>${escapeHtml(item.priority)}</b></div></div>
+        <div class="plan-release-box"><div class="plan-title"><div><small>计划发布 · ${escapeHtml(item.target)}</small><h3>${escapeHtml(item.title)}</h3></div></div><p>${escapeHtml(item.description)}</p><b class="feature-label">本版本包含的特性</b><div class="version-features">${(item.features || []).map(value => `<span>${escapeHtml(value)}</span>`).join('') || '<em>暂未填写特性</em>'}</div></div>
+      </div>
+      <div class="plan-operators-column"><div class="operator-column-head"><div><small>OPERATOR CHECKLIST</small><b>预计增加的算子列表</b></div><span>${(item.operators || []).filter(operator => operator.done).length} / ${(item.operators || []).length}</span></div><div class="operator-checklist">${(item.operators || []).map((operator, operatorIndex) => `<label class="operator-check ${operator.done ? 'is-done' : ''}"><input type="checkbox" data-plan-operator-toggle data-plan-index="${index}" data-operator-index="${operatorIndex}" ${operator.done ? 'checked' : ''}><span>${escapeHtml(operator.name)}</span></label>`).join('') || '<p class="operator-empty">尚未添加预计支持的算子，可点击“编辑”补充。</p>'}</div></div>
+    </article>`).join('') || emptyState('还没有版本发布计划。');
 }
 
 function renderResults() {
@@ -354,7 +364,10 @@ function renderField([name, label, type, options], value, index) {
   if (type === 'stages') {
     return `<div class="form-field wide"><span>${escapeHtml(label)}</span><div class="managed-stages"><div class="stage-edit-list">${(value || []).map((stage, stageIndex) => renderManagedStage(stage, index, stageIndex)).join('')}</div><button type="button" class="quiet" data-add-managed-stage="${index}">＋ 添加阶段</button></div></div>`;
   }
-  const wide = type === 'textarea' || type === 'list' || type === 'stages' ? ' wide' : '';
+  if (type === 'operatorChecklist') {
+    return `<div class="form-field wide"><span>${escapeHtml(label)}</span><div class="managed-operators"><div class="operator-edit-list">${(value || []).map((operator, operatorIndex) => renderManagedOperator(operator, index, operatorIndex)).join('')}</div><button type="button" class="quiet" data-add-managed-operator="${index}">＋ 添加算子</button></div></div>`;
+  }
+  const wide = type === 'textarea' || type === 'list' || type === 'stages' || type === 'operatorChecklist' ? ' wide' : '';
   const displayValue = type === 'list' ? (value || []).join('，') : (value ?? '');
   let control;
   if (type === 'textarea') {
@@ -369,6 +382,10 @@ function renderField([name, label, type, options], value, index) {
 
 function renderManagedStage(stage, recordIndex, stageIndex) {
   return `<div class="stage-edit-row" data-managed-record-index="${recordIndex}" data-managed-stage-index="${stageIndex}"><input value="${escapeHtml(stage.name)}" data-managed-stage-field="name" aria-label="阶段名称" /><select data-managed-stage-field="status" aria-label="阶段状态">${renderStageStatusOptions(stage.status)}</select><button type="button" class="mini-button delete" data-delete-managed-stage>删除</button></div>`;
+}
+
+function renderManagedOperator(operator, recordIndex, operatorIndex) {
+  return `<div class="operator-edit-row" data-managed-plan-index="${recordIndex}" data-managed-operator-index="${operatorIndex}"><label><input type="checkbox" data-managed-operator-field="done" ${operator.done ? 'checked' : ''}><span>完成</span></label><input value="${escapeHtml(operator.name)}" data-managed-operator-field="name" aria-label="算子名称" placeholder="输入算子名称" /><button type="button" class="mini-button delete" data-delete-managed-operator>删除</button></div>`;
 }
 
 function updateDraftFromControl(control) {
@@ -387,6 +404,13 @@ function updateManagedStageControl(control) {
   if (!row) return;
   const record = draftData.currentWork[Number(row.dataset.managedRecordIndex)];
   record.stages[Number(row.dataset.managedStageIndex)][control.dataset.managedStageField] = control.value;
+}
+
+function updateManagedOperatorControl(control) {
+  const row = control.closest('[data-managed-plan-index]');
+  if (!row) return;
+  const operator = draftData.plans[Number(row.dataset.managedPlanIndex)].operators[Number(row.dataset.managedOperatorIndex)];
+  operator[control.dataset.managedOperatorField] = control.type === 'checkbox' ? control.checked : control.value;
 }
 
 function addItem() {
@@ -522,6 +546,12 @@ document.querySelector('main').addEventListener('input', event => {
   if (event.target.matches('[data-inline-stage-field]')) updateInlineStageControl(event.target);
 });
 document.querySelector('main').addEventListener('change', event => {
+  if (event.target.matches('[data-plan-operator-toggle]')) {
+    const plan = boardData.plans[Number(event.target.dataset.planIndex)];
+    plan.operators[Number(event.target.dataset.operatorIndex)].done = event.target.checked;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+    return renderPlans();
+  }
   const card = event.target.closest('[data-task-card]');
   if (card && event.target.matches('[data-card-select]')) {
     const index = Number(card.dataset.taskCard);
@@ -573,12 +603,27 @@ document.querySelector('#editorNav').addEventListener('click', event => {
 document.querySelector('#formList').addEventListener('input', event => {
   if (event.target.matches('[data-field]')) updateDraftFromControl(event.target);
   if (event.target.matches('[data-managed-stage-field]')) updateManagedStageControl(event.target);
+  if (event.target.matches('[data-managed-operator-field]')) updateManagedOperatorControl(event.target);
 });
 document.querySelector('#formList').addEventListener('change', event => {
   if (event.target.matches('[data-field]')) updateDraftFromControl(event.target);
   if (event.target.matches('[data-managed-stage-field]')) updateManagedStageControl(event.target);
+  if (event.target.matches('[data-managed-operator-field]')) updateManagedOperatorControl(event.target);
 });
 document.querySelector('#formList').addEventListener('click', event => {
+  const addOperator = event.target.closest('[data-add-managed-operator]');
+  if (addOperator) {
+    const plan = draftData.plans[Number(addOperator.dataset.addManagedOperator)];
+    if (!Array.isArray(plan.operators)) plan.operators = [];
+    plan.operators.push({ name: '新算子', done: false });
+    return renderEditor();
+  }
+  const deleteOperator = event.target.closest('[data-delete-managed-operator]');
+  if (deleteOperator) {
+    const row = deleteOperator.closest('[data-managed-plan-index]');
+    draftData.plans[Number(row.dataset.managedPlanIndex)].operators.splice(Number(row.dataset.managedOperatorIndex), 1);
+    return renderEditor();
+  }
   const addStage = event.target.closest('[data-add-managed-stage]');
   if (addStage) {
     draftData.currentWork[Number(addStage.dataset.addManagedStage)].stages.push({ name: '自定义阶段', status: 'planned' });

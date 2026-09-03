@@ -205,21 +205,45 @@ main { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
 .managed-stages { display: grid; gap: 9px; padding: 10px; border: 1px solid #dfe5ea; border-radius: 7px; background: #f6f8fa; }
 .managed-stages > .quiet { justify-self: start; }
 
-.plan-list { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
-.plan-item { position: relative; display: grid; grid-template-columns: 128px 1fr 100px; gap: 22px; padding: 20px 72px 20px 20px; border-bottom: 1px solid var(--line); }
+.plan-list { display: grid; gap: 12px; }
+.plan-item { position: relative; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .plan-item:last-child { border-bottom: 0; }
-.plan-date { display: flex; flex-direction: column; gap: 8px; }
-.plan-date span { color: var(--blue); font: 750 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
-.plan-date small { margin-top: 5px; color: #8a96a0; font-size: 10px; }
-.plan-date time { color: var(--muted); font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
-.plan-title { display: flex; align-items: center; gap: 10px; }
+.plan-release-column, .plan-operators-column { min-width: 0; padding: 20px; }
+.plan-release-column { padding-right: 24px; }
+.plan-operators-column { border-left: 1px solid var(--line); background: #f8fafb; }
+.plan-card-head, .operator-column-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.plan-card-head { margin-bottom: 13px; padding-right: 44px; }
+.plan-card-head > div:first-child { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.plan-version { color: var(--blue); font: 750 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.plan-release-box { padding: 15px; border: 1px solid #dde4ea; border-radius: 8px; background: #fbfcfd; }
+.plan-title small { display: block; margin-bottom: 5px; color: #7f8c97; font: 650 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
 .plan-title h3 { margin: 0; font-size: 16px; }
-.plan-main > p { margin: 9px 0 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.plan-release-box > p { margin: 10px 0 13px; color: var(--muted); font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
 .feature-label { display: block; margin-bottom: 7px; color: #42515e; font-size: 11px; }
 .version-features { display: flex; flex-wrap: wrap; gap: 6px; }
 .version-features span { padding: 5px 7px; border-radius: 5px; background: #f1f4f6; color: #63717d; font-size: 10px; }
-.plan-state { display: flex; flex-direction: column; align-items: end; gap: 10px; }
+.version-features em { color: #99a4ad; font-size: 10px; font-style: normal; }
+.plan-state { display: flex; align-items: center; gap: 8px; }
 .plan-state > b { color: #8a5660; font: 700 9px ui-monospace, monospace; }
+.operator-column-head { margin-bottom: 12px; }
+.operator-column-head > div { display: grid; gap: 4px; }
+.operator-column-head small { color: var(--blue); font-size: 8px; font-weight: 750; letter-spacing: .12em; }
+.operator-column-head b { color: #3f4d58; font-size: 12px; }
+.operator-column-head > span { padding: 5px 8px; border-radius: 999px; background: #e9eef2; color: #677580; font: 700 10px ui-monospace, monospace; }
+.operator-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.operator-check { display: flex; align-items: center; gap: 8px; min-height: 35px; padding: 7px 9px; border: 1px solid #dde4ea; border-radius: 7px; background: #fff; color: #50606c; font-size: 10px; cursor: pointer; }
+.operator-check input { width: 15px; height: 15px; margin: 0; accent-color: var(--green); }
+.operator-check.is-done { border-color: #b9d9ca; background: var(--green-soft); color: #317055; }
+.operator-check.is-done span { text-decoration: line-through; text-decoration-color: #79aa94; }
+.operator-empty { grid-column: 1 / -1; margin: 0; padding: 12px; border: 1px dashed #cad3db; border-radius: 7px; color: #8b98a2; font-size: 10px; line-height: 1.5; }
+.managed-operators { display: grid; gap: 9px; padding: 10px; border: 1px solid #dfe5ea; border-radius: 7px; background: #f6f8fa; }
+.managed-operators > .quiet { justify-self: start; }
+.operator-edit-list { display: grid; gap: 8px; }
+.operator-edit-row { display: grid; grid-template-columns: 76px minmax(180px, 1fr) auto; gap: 8px; align-items: center; }
+.operator-edit-row > label { display: flex; align-items: center; gap: 6px; color: #667581; font-size: 10px; }
+.operator-edit-row > label input { accent-color: var(--green); }
+.operator-edit-row > input { width: 100%; min-height: 36px; padding: 0 9px; border: 1px solid #cfd7df; border-radius: 6px; outline: none; background: #fff; color: #26333f; font-size: 10px; }
+.operator-edit-row > input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(48,105,214,.09); }
 
 .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .result-card { position: relative; min-height: 190px; padding: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
@@ -301,6 +325,8 @@ footer > span { color: #52606c; font-weight: 700; }
   .inline-form-grid { grid-template-columns: 1fr 1fr; }
   .result-grid { grid-template-columns: 1fr 1fr; }
   .section-tools > p { display: none; }
+  .plan-item { grid-template-columns: 1fr; }
+  .plan-operators-column { border-top: 1px solid var(--line); border-left: 0; }
   dialog { width: calc(100% - 20px); height: calc(100vh - 20px); max-height: calc(100vh - 20px); }
   .editor-layout { grid-template-columns: 145px 1fr; }
   #editorMessage { padding-left: 165px; }
@@ -330,8 +356,10 @@ footer > span { color: #52606c; font-weight: 700; }
   .inline-field.wide { grid-column: 1; }
   .stage-edit-row { grid-template-columns: 1fr 1fr auto; }
   .stage-edit-row .delete { grid-column: 3; grid-row: 1; }
-  .plan-item { grid-template-columns: 1fr; }
-  .plan-state { align-items: start; flex-direction: row; }
+  .plan-release-column, .plan-operators-column { padding: 15px; }
+  .plan-card-head { align-items: flex-start; flex-direction: column; padding-right: 44px; }
+  .operator-checklist { grid-template-columns: 1fr; }
+  .operator-edit-row { grid-template-columns: 70px 1fr auto; }
   .result-grid { grid-template-columns: 1fr; }
   .version-table article { grid-template-columns: 1fr; gap: 6px; }
   dialog { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
