@@ -258,7 +258,14 @@ function renderPlans() {
 
 function renderOperatorBacklog() {
   const items = boardData.operatorBacklog || [];
-  const cards = items.map((op, index) => `
+  const order = items.map((_, i) => i).sort((a, b) => {
+    const pa = parseInt(items[a].priority, 10);
+    const pb = parseInt(items[b].priority, 10);
+    return (isNaN(pa) ? 99 : pa) - (isNaN(pb) ? 99 : pb) || a - b;
+  });
+  const cards = order.map(index => {
+    const op = items[index];
+    return `
     <article class="op-item" data-op-card="${index}">
       <button type="button" class="op-remove" data-op-remove="${index}" aria-label="删除算子 ${escapeHtml(op.name)}">×</button>
       <div class="op-head-row">
@@ -270,7 +277,8 @@ function renderOperatorBacklog() {
         <label><span>依赖</span><input type="text" data-op-field="dependency" value="${escapeHtml(op.dependency)}" placeholder="-" /></label>
         <label><span>评论</span><input type="text" data-op-field="comment" value="${escapeHtml(op.comment)}" placeholder="-" /></label>
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
   document.querySelector('#operatorBacklogList').innerHTML = `${cards}<button type="button" class="op-add" data-op-add><span>＋</span><b>添加算子</b></button>`;
 }
 
@@ -732,8 +740,10 @@ document.querySelector('main').addEventListener('change', event => {
   const opChangeCard = event.target.closest('[data-op-card]');
   if (opChangeCard && event.target.matches('[data-op-field]') && !event.target.isContentEditable) {
     const opIndex = Number(opChangeCard.dataset.opCard);
-    boardData.operatorBacklog[opIndex][event.target.dataset.opField] = event.target.value;
+    const field = event.target.dataset.opField;
+    boardData.operatorBacklog[opIndex][field] = event.target.value;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+    if (field === 'priority') renderOperatorBacklog();
     return;
   }
   const card = event.target.closest('[data-task-card]');
