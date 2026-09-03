@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 14,
+    "dataRevision": 15,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -338,8 +338,8 @@
       ],
       "operators": [
         {
-          "name": "M32/M16 Vector 算子",
-          "done": true
+          "name": "M32/M16 Vector 算子，卡在fa matmul不支持vector m32输入",
+          "done": false
         },
         {
           "name": "MXFP4/MXFP8 MatMul",
@@ -355,7 +355,7 @@
         },
         {
           "name": "FIXP rowmax FlashAttention",
-          "done": false
+          "done": true
         }
       ]
     },
@@ -364,13 +364,15 @@
       "target": "2026-09-04",
       "status": "planned",
       "priority": "P1",
-      "title": "subview",
+      "title": "subview特性",
       "description": "固定 MatMul、FA、FlashMLA、RMSNorm、Reduction 与数据搬运代表组合。",
-      "version": "release_ver0912",
-      "features": [],
+      "version": "release_ver0904",
+      "features": [
+        "subview特性"
+      ],
       "operators": [
         {
-          "name": "subview FA",
+          "name": "subview FA各数据类型",
           "done": false
         },
         {
@@ -379,6 +381,64 @@
         },
         {
           "name": "MXFP4/MXFP8 FA",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "PLAN-3481",
+      "version": "release_verXXXX",
+      "target": "2026-09-08",
+      "status": "planned",
+      "priority": "P1",
+      "title": "acc特性,im2col",
+      "description": "",
+      "features": [
+        "cube acc",
+        "im2col"
+      ],
+      "operators": [
+        {
+          "name": "conv",
+          "done": false
+        },
+        {
+          "name": "fa/matmul等cube算子更新适配",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "PLAN-4584",
+      "version": "release_verXXXX",
+      "target": "2026-09-11",
+      "status": "planned",
+      "priority": "P1",
+      "title": "算子性能优化和全量支持",
+      "description": "",
+      "features": [
+        "增加算子",
+        "优化性能"
+      ],
+      "operators": [
+        {
+          "name": "broadcast，transpose性能分析优化",
+          "done": false
+        },
+        {
+          "name": "hash",
+          "done": false
+        },
+        {
+          "name": "qli",
+          "done": false
+        },
+        {
+          "name": "qsmla",
+          "done": false
+        },
+        {
+          "name": "sfa",
           "done": false
         }
       ]
