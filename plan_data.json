@@ -124,9 +124,11 @@
       "id": "MT-FA-01",
       "title": "多线程 FA：M32 Vector 路径",
       "area": "FlashAttention",
-      "status": "blocked",
+      "status": "done",
       "priority": "P0",
       "description": "Cube 输出直接参与 scale、rowmax、exp、rowsum；BF16 输入/FP32 Vector 与 FP32 路径均已编译。",
+      "result": "Golden FP32 代表配置通过；gfsim 仍受 CUBE_M32_TO_ND TSTORE 与 shared GMMA TLOAD 死锁阻塞。",
+      "next": "推动模型补齐布局写回和四 PE group load 同步。",
       "stages": [
         {
           "name": "ISA",
@@ -145,72 +147,46 @@
           "status": "done"
         }
       ],
-      "currentIssueSummary": "CUBE_M32_TO_ND 写回语义仍需模型补齐；BF16 精度尚未闭环，gfsim 在 shared GMMA TLOAD 同步处死锁。",
-      "next": "推动模型补齐布局写回和四 PE group load 同步。"
+      "currentIssueSummary": "Golden FP32 代表配置通过；gfsim 仍受 CUBE_M32_TO_ND TSTORE 与 shared GMMA TLOAD 死锁阻塞。"
     },
     {
-      "id": "WORK-8837",
-      "title": "fixpipe特性",
-      "area": "Operator",
-      "status": "planned",
-      "priority": "P1",
-      "description": "点击此处填写工作说明。",
-      "stages": [
-        {
-          "name": "ISA",
-          "status": "done"
-        },
-        {
-          "name": "算子",
-          "status": "done"
-        },
-        {
-          "name": "编译器",
-          "status": "done"
-        },
-        {
-          "name": "gfrun",
-          "status": "done"
-        }
-      ],
-      "currentIssueSummary": "点击此处填写当前问题总结。",
-      "next": "点击此处填写下一步。"
-    },
-    {
-      "id": "MODEL-02",
+      "id": "VERIFY-02",
       "title": "Microbenchmark 数值校验收敛",
-      "area": "Toolchain",
-      "status": "in_progress",
-      "priority": "P0",
-      "description": "定位 Vector、Memory、Cube、Scalar 在 RES_CHECK 下的系统性数值失败。",
-      "stages": [
-        {
-          "name": "ISA",
-          "status": "in_progress"
-        },
-        {
-          "name": "算子",
-          "status": "in_progress"
-        },
-        {
-          "name": "编译器",
-          "status": "in_progress"
-        },
-        {
-          "name": "gfrun",
-          "status": "in_progress"
-        }
-      ],
-      "currentIssueSummary": "",
-      "next": "优先处理 Vector 结果未写回和 Memory 往返失真。"
-    },
-    {
-      "id": "VERIFY-03",
-      "title": "subview功能",
       "area": "Verification",
       "status": "in_progress",
       "priority": "P1",
-      "description": "",
+      "description": "定位 Vector、Memory、Cube、Scalar 在 RES_CHECK 下的系统性数值失败。",
+      "result": "已将 221 个失败拆分为数值不匹配和模型 handler/断言两类。",
+      "next": "优先处理 Vector 结果未写回和 Memory 往返失真。",
+      "stages": [
+        {
+          "name": "ISA",
+          "status": "in_progress"
+        },
+        {
+          "name": "算子",
+          "status": "in_progress"
+        },
+        {
+          "name": "编译器",
+          "status": "done"
+        },
+        {
+          "name": "gfrun",
+          "status": "in_progress"
+        }
+      ],
+      "currentIssueSummary": ""
+    },
+    {
+      "id": "PERF-03",
+      "title": "subview功能",
+      "area": "Performance",
+      "status": "planned",
+      "priority": "P1",
+      "description": "为 MatMul、FA、Reduction 生成 PipeView 与 SwimLane，并记录版本间周期差异。",
+      "result": "FA 临时 no-TSTORE ELF 已用于暴露下一层 shared GMMA 死锁。",
+      "next": "模型问题关闭后生成首轮完整性能报告。",
       "stages": [
         {
           "name": "ISA",
@@ -229,16 +205,15 @@
           "status": "in_progress"
         }
       ],
-      "currentIssueSummary": "rowsum冒烟测试中，gfrun报错m32 layout不支持，https://github.com/PTO-ISA/pto-spec/blob/v0.58.4/asl/tile/reduce-and-expand/row-reduction/TROWSUM.asl#L3-L13 表明layout需要row-major",
-      "next": ""
+      "currentIssueSummary": "rowsum冒烟测试中，gfrun报错m32 layout不支持，https://github.com/PTO-ISA/pto-spec/blob/v0.58.4/asl/tile/reduce-and-expand/row-reduction/TROWSUM.asl#L3-L13 表明layout需要row-major"
     },
     {
-      "id": "PERF-04",
+      "id": "WORK-4",
       "title": "hif4x2 matmul问题跟踪",
-      "area": "Performance",
+      "area": "Operator",
       "status": "planned",
       "priority": "P1",
-      "description": "为 MatMul、FA、Reduction 生成 PipeView 与 SwimLane，并记录版本间周期差异。",
+      "description": "",
       "stages": [
         {
           "name": "ISA",
@@ -258,15 +233,15 @@
         }
       ],
       "currentIssueSummary": "目前gfrun报错matmul_mx不支持hif4数据类型，问题跟踪：https://github.com/LinxISA/SuperScalarModel/issues/501",
-      "next": "模型问题关闭后生成首轮完整性能报告。"
+      "next": ""
     },
     {
-      "id": "WORK-3320",
+      "id": "WORK-5",
       "title": "FA算子性能优化：提升CUBE利用率并减少冗余向量操作",
       "area": "Operator",
       "status": "planned",
       "priority": "P1",
-      "description": "点击此处填写工作说明。",
+      "description": "xiaoru发现fa性能bug，待修复",
       "stages": [
         {
           "name": "ISA",
@@ -285,16 +260,44 @@
           "status": "planned"
         }
       ],
-      "currentIssueSummary": "点击此处填写当前问题总结。",
-      "next": "点击此处填写下一步。"
+      "currentIssueSummary": "",
+      "next": ""
     },
     {
-      "id": "WORK-1837",
+      "id": "WORK-6",
+      "title": "fixpipe特性",
+      "area": "Operator",
+      "status": "planned",
+      "priority": "P1",
+      "description": "",
+      "stages": [
+        {
+          "name": "ISA",
+          "status": "done"
+        },
+        {
+          "name": "算子",
+          "status": "done"
+        },
+        {
+          "name": "编译器",
+          "status": "done"
+        },
+        {
+          "name": "gfrun",
+          "status": "done"
+        }
+      ],
+      "currentIssueSummary": "",
+      "next": ""
+    },
+    {
+      "id": "WORK-7",
       "title": "低精度算子支持",
       "area": "Operator",
       "status": "planned",
       "priority": "P1",
-      "description": "点击此处填写工作说明。",
+      "description": "",
       "stages": [
         {
           "name": "ISA",
@@ -314,23 +317,24 @@
         }
       ],
       "currentIssueSummary": "mxfp4，mxfp8，hifp4，hifp8精度matmul算子-gfrun已经支持完毕，数值校验还存在问题；\nmxfp4，mxfp8，hifp4，hifp8精度的fa算子还在写，依赖subview功能打通；",
-      "next": "点击此处填写下一步。"
+      "next": ""
     }
   ],
   "plans": [
     {
       "id": "PLAN-01",
-      "version": "release_ver0903",
       "target": "2026-09-03",
       "status": "in_progress",
       "priority": "P0",
-      "title": "subview和fixpipe适配",
+      "title": "",
       "description": "1.支持 M32/M16 layout for vector；\n2.支持subview特性；\n3.支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；\n4.支持fixpipe特性， FA fixpipe优化；",
+      "version": "release_ver0903",
       "features": [
         "支持 M32/M16 layout for vector；",
         "支持subview特性；",
         "支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；",
-        "支持fixpipe特性， FA fixpipe优化；"
+        "支持fixpipe特性， FA fixpipe优化；",
+        "mxfp4/mxfp8数值校验通过"
       ],
       "operators": [
         {
@@ -370,6 +374,23 @@
           "done": false
         }
       ]
+    },
+    {
+      "id": "PLAN-02",
+      "target": "2026-09-04",
+      "status": "planned",
+      "priority": "P1",
+      "title": "核心发布算子 Golden 100%",
+      "description": "固定 MatMul、FA、FlashMLA、RMSNorm、Reduction 与数据搬运代表组合。",
+      "version": "release_ver0912",
+      "features": [
+        "MatMul、FA、FlashMLA Golden 校验",
+        "RMSNorm 与 Reduction Golden 校验",
+        "数据搬运代表用例",
+        "PASS/FAIL 清单与误差摘要",
+        "工具链和模型版本指纹"
+      ],
+      "operators": []
     }
   ],
   "results": [
