@@ -234,11 +234,11 @@ main { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
 .feature-input-wrap { flex: 1 1 150px; min-width: 140px; }
 .feature-input { width: 100%; height: 28px; padding: 0 8px; border: 1px dashed #c8d3dd; border-radius: 6px; outline: 0; background: #fff; color: #42515e; font-size: 10px; }
 .feature-input:focus { border-style: solid; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(48,105,214,.08); }
-.plan-operators { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-.plan-operator { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 5px 6px 5px 9px; border: 1px solid #dde4ea; border-radius: 7px; background: #fff; }
-.plan-operator > input[type="checkbox"] { width: 15px; height: 15px; margin: 0; accent-color: var(--green); flex: 0 0 auto; }
-.plan-operator .operator-name { flex: 1 1 auto; min-width: 0; padding: 2px 4px; color: #50606c; font-size: 11px; }
-.plan-operator .operator-remove { flex: 0 0 auto; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #aab4bd; font-size: 13px; line-height: 1; }
+.plan-operators { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.plan-operator { display: flex; align-items: center; gap: 6px; min-height: 28px; padding: 3px 5px 3px 7px; border: 1px solid #dde4ea; border-radius: 6px; background: #fff; }
+.plan-operator > input[type="checkbox"] { width: 13px; height: 13px; margin: 0; accent-color: var(--green); flex: 0 0 auto; }
+.plan-operator .operator-name { flex: 1 1 auto; min-width: 0; padding: 2px 3px; color: #50606c; font-size: 10px; }
+.plan-operator .operator-remove { flex: 0 0 auto; width: 16px; height: 16px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #aab4bd; font-size: 12px; line-height: 1; }
 .plan-operator .operator-remove:hover { background: var(--red-soft); color: var(--red); }
 .plan-operator.is-done { border-color: #b9d9ca; background: var(--green-soft); }
 .plan-operator.is-done .operator-name { color: #317055; text-decoration: line-through; text-decoration-color: #79aa94; }
