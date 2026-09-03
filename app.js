@@ -9,6 +9,7 @@ let inlineEditingTaskIndex = null;
 let inlineTaskDraft = null;
 let draggedTaskIndex = null;
 const dirtyTasks = new Set();
+const dirtyPlans = new Set();
 
 const statusLabels = {
   in_progress: '进行中', blocked: '问题阻塞', planned: '待开始',
@@ -222,14 +223,31 @@ function renderInlineStage(stage, stageIndex) {
 }
 
 function renderPlans() {
-  document.querySelector('#planList').innerHTML = boardData.plans.map((item, index) => `
-    <article class="plan-item"><button type="button" class="card-edit" data-edit-record="plans" data-index="${index}" aria-label="编辑版本 ${escapeHtml(item.version)}">编辑</button>
-      <div class="plan-release-column">
-        <div class="plan-card-head"><div><span class="plan-version">${escapeHtml(item.version)}</span><span class="work-id">${escapeHtml(item.id)}</span></div><div class="plan-state"><span class="status ${escapeHtml(item.status)}">${statusLabels[item.status] || escapeHtml(item.status)}</span><b>${escapeHtml(item.priority)}</b></div></div>
-        <div class="plan-release-box"><div class="plan-title"><div><small>计划发布 · ${escapeHtml(item.target)}</small><h3>${escapeHtml(item.title)}</h3></div></div><p>${escapeHtml(item.description)}</p><b class="feature-label">本版本包含的特性</b><div class="version-features">${(item.features || []).map(value => `<span>${escapeHtml(value)}</span>`).join('') || '<em>暂未填写特性</em>'}</div></div>
+  document.querySelector('#planList').innerHTML = boardData.plans.map((item, index) => {
+    const dirty = dirtyPlans.has(index);
+    const operators = Array.isArray(item.operators) ? item.operators : [];
+    const features = Array.isArray(item.features) ? item.features : [];
+    const doneCount = operators.filter(operator => operator.done).length;
+    return `<article class="plan-item ${dirty ? 'is-dirty' : ''}" data-plan-card="${index}">
+      <button type="button" class="card-edit" data-edit-record="plans" data-index="${index}" aria-label="在管理面板中编辑版本 ${escapeHtml(item.version)}">编辑</button>
+      <div class="plan-head">
+        <div class="plan-identity"><span class="plan-version editable-text" contenteditable="plaintext-only" data-plan-field="version" role="textbox">${escapeHtml(item.version)}</span><span class="work-id">${escapeHtml(item.id)}</span></div>
+        <div class="plan-config"><select data-plan-select="status" aria-label="版本状态">${renderTaskStatusOptions(item.status)}</select><select data-plan-select="priority" aria-label="版本优先级">${renderPriorityOptions(item.priority)}</select></div>
       </div>
-      <div class="plan-operators-column"><div class="operator-column-head"><div><small>OPERATOR CHECKLIST</small><b>预计增加的算子列表</b></div><span>${(item.operators || []).filter(operator => operator.done).length} / ${(item.operators || []).length}</span></div><div class="operator-checklist">${(item.operators || []).map((operator, operatorIndex) => `<label class="operator-check ${operator.done ? 'is-done' : ''}"><input type="checkbox" data-plan-operator-toggle data-plan-index="${index}" data-operator-index="${operatorIndex}" ${operator.done ? 'checked' : ''}><span>${escapeHtml(operator.name)}</span></label>`).join('') || '<p class="operator-empty">尚未添加预计支持的算子，可点击“编辑”补充。</p>'}</div></div>
-    </article>`).join('') || emptyState('还没有版本发布计划。');
+      <div class="plan-release-line"><span>计划发布</span><input type="date" class="plan-target" data-plan-field="target" value="${escapeHtml(item.target)}" /></div>
+      <h3 class="plan-title editable-text" contenteditable="plaintext-only" data-plan-field="title" role="textbox">${escapeHtml(item.title)}</h3>
+      <p class="plan-desc editable-text" contenteditable="plaintext-only" data-plan-field="description" role="textbox">${escapeHtml(item.description || '')}</p>
+      <div class="plan-block">
+        <div class="plan-block-head"><b>版本特性</b><small>点击标签 × 删除，输入框回车添加</small></div>
+        <div class="plan-features">${features.map((feature, featureIndex) => `<span class="feature-chip">${escapeHtml(feature)}<button type="button" class="feature-remove" data-plan-remove-feature="${featureIndex}" aria-label="删除特性 ${escapeHtml(feature)}">×</button></span>`).join('')}<label class="feature-input-wrap"><input type="text" class="feature-input" data-plan-feature-input placeholder="输入特性后回车添加" /></label></div>
+      </div>
+      <div class="plan-block">
+        <div class="plan-block-head"><b>涵盖算子</b><span class="plan-block-count">${doneCount} / ${operators.length}</span><button type="button" class="add-operator-button" data-plan-add-operator="${index}">＋ 添加算子</button></div>
+        <div class="plan-operators">${operators.map((operator, operatorIndex) => `<label class="plan-operator ${operator.done ? 'is-done' : ''}"><input type="checkbox" data-plan-operator-done data-operator-index="${operatorIndex}" ${operator.done ? 'checked' : ''}><span class="operator-name editable-text" contenteditable="plaintext-only" data-plan-operator-name data-operator-index="${operatorIndex}" role="textbox">${escapeHtml(operator.name)}</span><button type="button" class="operator-remove" data-plan-remove-operator="${operatorIndex}" aria-label="删除算子 ${escapeHtml(operator.name)}">×</button></label>`).join('') || '<p class="operator-empty">尚未添加算子，点击“＋ 添加算子”补充。</p>'}</div>
+      </div>
+      <div class="card-save-bar"><span class="save-state">${dirty ? '有尚未保存的修改' : '内容已保存'}</span><button type="button" class="save-card-button ${dirty ? 'needs-save' : ''}" data-save-plan="${index}">${dirty ? '保存修改' : '已保存'}</button></div>
+    </article>`;
+  }).join('') || emptyState('还没有版本发布计划。');
 }
 
 function renderResults() {
@@ -267,6 +285,73 @@ function saveWorkCard(index) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
   dirtyTasks.delete(index);
   renderCurrentWork();
+}
+
+function markPlanDirty(index, card) {
+  dirtyPlans.add(index);
+  card.classList.add('is-dirty');
+  const button = card.querySelector('[data-save-plan]');
+  const state = card.querySelector('.save-state');
+  if (button) { button.textContent = '保存修改'; button.classList.add('needs-save'); }
+  if (state) state.textContent = '有尚未保存的修改';
+}
+
+function savePlanCard(index) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  dirtyPlans.delete(index);
+  renderPlans();
+  requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+}
+
+function ensurePlanOperators(index) {
+  if (!Array.isArray(boardData.plans[index].operators)) boardData.plans[index].operators = [];
+  return boardData.plans[index].operators;
+}
+
+function ensurePlanFeatures(index) {
+  if (!Array.isArray(boardData.plans[index].features)) boardData.plans[index].features = [];
+  return boardData.plans[index].features;
+}
+
+function markPlanCardDirty(index) {
+  const card = document.querySelector(`[data-plan-card="${index}"]`);
+  if (card) markPlanDirty(index, card);
+}
+
+function addPlanOperator(index) {
+  ensurePlanOperators(index).push({ name: '新算子', done: false });
+  markPlanCardDirty(index);
+  renderPlans();
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`[data-plan-card="${index}"] .plan-operator:last-child .operator-name`);
+    row?.focus();
+    const range = document.createRange();
+    range.selectNodeContents(row);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  });
+}
+
+function removePlanOperator(index, operatorIndex) {
+  ensurePlanOperators(index).splice(operatorIndex, 1);
+  markPlanCardDirty(index);
+  renderPlans();
+}
+
+function addPlanFeature(index, value) {
+  const trimmed = (value || '').trim();
+  if (!trimmed) return;
+  ensurePlanFeatures(index).push(trimmed);
+  markPlanCardDirty(index);
+  renderPlans();
+  requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"] .feature-input`)?.focus());
+}
+
+function removePlanFeature(index, featureIndex) {
+  ensurePlanFeatures(index).splice(featureIndex, 1);
+  markPlanCardDirty(index);
+  renderPlans();
 }
 
 function deleteWorkCard(index) {
@@ -467,6 +552,17 @@ document.querySelector('main').addEventListener('click', event => {
   if (event.target.closest('[data-add-work-card]')) return addWorkCard();
   const saveTask = event.target.closest('[data-save-task]');
   if (saveTask) return saveWorkCard(Number(saveTask.dataset.saveTask));
+  const savePlan = event.target.closest('[data-save-plan]');
+  if (savePlan) return savePlanCard(Number(savePlan.dataset.savePlan));
+  const planCard = event.target.closest('[data-plan-card]');
+  if (planCard) {
+    const planIndex = Number(planCard.dataset.planCard);
+    if (event.target.closest('[data-plan-add-operator]')) return addPlanOperator(planIndex);
+    const removeOperator = event.target.closest('[data-plan-remove-operator]');
+    if (removeOperator) return removePlanOperator(planIndex, Number(removeOperator.dataset.planRemoveOperator));
+    const removeFeature = event.target.closest('[data-plan-remove-feature]');
+    if (removeFeature) return removePlanFeature(planIndex, Number(removeFeature.dataset.planRemoveFeature));
+  }
   const deleteTask = event.target.closest('[data-delete-task]');
   if (deleteTask) return deleteWorkCard(Number(deleteTask.dataset.deleteTask));
   const card = event.target.closest('[data-task-card]');
@@ -542,15 +638,40 @@ document.querySelector('main').addEventListener('input', event => {
     boardData.currentWork[index].stages[stageIndex].name = event.target.textContent.trim();
     return markTaskDirty(index, card);
   }
+  const planInputCard = event.target.closest('[data-plan-card]');
+  if (planInputCard && event.target.matches('[data-plan-field]')) {
+    const planIndex = Number(planInputCard.dataset.planCard);
+    boardData.plans[planIndex][event.target.dataset.planField] = event.target.isContentEditable ? event.target.textContent.trim() : event.target.value;
+    return markPlanDirty(planIndex, planInputCard);
+  }
+  if (planInputCard && event.target.matches('[data-plan-operator-name]')) {
+    const planIndex = Number(planInputCard.dataset.planCard);
+    const operatorIndex = Number(event.target.dataset.operatorIndex);
+    boardData.plans[planIndex].operators[operatorIndex].name = event.target.textContent.trim();
+    return markPlanDirty(planIndex, planInputCard);
+  }
   if (event.target.matches('[data-inline-field]')) updateInlineTaskControl(event.target);
   if (event.target.matches('[data-inline-stage-field]')) updateInlineStageControl(event.target);
 });
 document.querySelector('main').addEventListener('change', event => {
-  if (event.target.matches('[data-plan-operator-toggle]')) {
-    const plan = boardData.plans[Number(event.target.dataset.planIndex)];
-    plan.operators[Number(event.target.dataset.operatorIndex)].done = event.target.checked;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
-    return renderPlans();
+  const planCard = event.target.closest('[data-plan-card]');
+  if (planCard) {
+    const planIndex = Number(planCard.dataset.planCard);
+    if (event.target.matches('[data-plan-select]')) {
+      boardData.plans[planIndex][event.target.dataset.planSelect] = event.target.value;
+      return markPlanDirty(planIndex, planCard);
+    }
+    if (event.target.matches('[data-plan-field]') && !event.target.isContentEditable) {
+      boardData.plans[planIndex][event.target.dataset.planField] = event.target.value;
+      return markPlanDirty(planIndex, planCard);
+    }
+    if (event.target.matches('[data-plan-operator-done]')) {
+      const operatorIndex = Number(event.target.dataset.operatorIndex);
+      boardData.plans[planIndex].operators[operatorIndex].done = event.target.checked;
+      const label = event.target.closest('.plan-operator');
+      if (label) label.classList.toggle('is-done', event.target.checked);
+      return markPlanDirty(planIndex, planCard);
+    }
   }
   const card = event.target.closest('[data-task-card]');
   if (card && event.target.matches('[data-card-select]')) {
@@ -589,6 +710,20 @@ document.querySelector('main').addEventListener('keydown', event => {
   if (event.target.closest('[data-task-card]') && (event.metaKey || event.ctrlKey) && event.key === 'Enter') {
     event.preventDefault();
     return saveWorkCard(Number(event.target.closest('[data-task-card]').dataset.taskCard));
+  }
+  if (event.target.matches('[data-plan-feature-input]') && event.key === 'Enter') {
+    event.preventDefault();
+    const planCard = event.target.closest('[data-plan-card]');
+    return addPlanFeature(Number(planCard.dataset.planCard), event.target.value);
+  }
+  if (event.target.matches('.plan-version, .plan-title, .operator-name') && event.key === 'Enter') {
+    event.preventDefault();
+    return event.target.blur();
+  }
+  const planCard = event.target.closest('[data-plan-card]');
+  if (planCard && (event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+    event.preventDefault();
+    return savePlanCard(Number(planCard.dataset.planCard));
   }
   if (event.target.matches('[data-direct-issue-summary]') && (event.metaKey || event.ctrlKey) && event.key === 'Enter') event.target.blur();
 });
