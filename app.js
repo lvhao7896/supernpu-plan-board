@@ -335,8 +335,26 @@ function addWorkCard() {
   requestAnimationFrame(() => document.querySelector(`[data-task-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 }
 
+async function persistToServer() {
+  try {
+    const res = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(boardData)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const info = await res.json();
+    if (info?.ok) console.info('[plan] 已写入 plan_data.json', info);
+    else console.warn('[plan] /save 未成功', info);
+  } catch (error) {
+    // 线上静态站无 /save 后端，静默降级为仅 localStorage。
+    console.warn('[plan] /save 不可用，本次仅存 localStorage。', error?.message || error);
+  }
+}
+
 function saveWorkCard(index) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  persistToServer();
   dirtyTasks.delete(index);
   renderCurrentWork();
 }
@@ -352,6 +370,7 @@ function markPlanDirty(index, card) {
 
 function savePlanCard(index) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  persistToServer();
   dirtyPlans.delete(index);
   renderPlans();
   requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
