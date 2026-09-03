@@ -94,18 +94,14 @@ function migrateLocalData(localData) {
     if (!item.currentIssueSummary) item.currentIssueSummary = repositoryItem?.currentIssueSummary || '';
     delete item.progress;
   });
-  migrated.plans = migrated.plans.map(item => {
-    const repositoryItem = repositoryData.plans.find(candidate => candidate.id === item.id);
-    const next = { ...item };
-    next.version = repositoryItem?.version || item.version || item.milestone || 'release_verXXXX';
-    next.features = clone(repositoryItem?.features || item.features || item.deliverables || []);
-    const operators = repositoryItem?.operators || item.operators || [];
-    next.operators = operators.map(operator => typeof operator === 'string'
+  // 版本发布计划以仓库 plan_data.json 为权威：整体用 repo 的 plans，
+  // 保证远端新增/改名的计划在本机 migrate 后可见，本地多余/测试卡不残留。
+  migrated.plans = clone(repositoryData.plans || []).map(item => {
+    const operators = item.operators || [];
+    item.operators = operators.map(operator => typeof operator === 'string'
       ? { name: operator, done: false }
       : { name: operator.name || '', done: Boolean(operator.done) });
-    delete next.milestone;
-    delete next.deliverables;
-    return next;
+    return item;
   });
   migrated.operatorBacklog = clone(repositoryData.operatorBacklog || []);
   repositoryData.released.slice().reverse().forEach(item => {
