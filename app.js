@@ -44,6 +44,11 @@ const editorSections = {
     fields: [['id', '计划 ID', 'text'], ['version', '版本号', 'text'], ['target', '计划发布日期', 'date'], ['status', '状态', 'select', ['planned', 'in_progress', 'blocked', 'done']], ['priority', '优先级', 'select', ['P0', 'P1', 'P2', 'P3']], ['title', '版本定位', 'text'], ['description', '计划发布内容', 'textarea'], ['features', '本版本特性（逗号分隔）', 'list'], ['operators', '预计增加的算子', 'operatorChecklist']],
     create: () => ({ id: `PLAN-${Date.now().toString().slice(-4)}`, version: 'release_verXXXX', target: today(), status: 'planned', priority: 'P1', title: '新版本', description: '', features: [], operators: [] })
   },
+  operatorBacklog: {
+    label: '算子规划总表', description: '跨版本维护全部算子的状态、负责人、优先级与备注。',
+    fields: [['name', '算子名称', 'text'], ['status', '状态标记', 'text'], ['priority', '优先级', 'text'], ['owner', '负责人', 'text'], ['note', '调优/备注', 'textarea'], ['dependency', '依赖', 'text'], ['comment', '评论', 'textarea']],
+    create: () => ({ name: '新算子', status: '', priority: '', owner: '', note: '', dependency: '', comment: '' })
+  },
   results: {
     label: '验证结果', description: '记录功能验证、精度校验和性能分析结论。',
     fields: [['date', '验证日期', 'date'], ['title', '结果名称', 'text'], ['status', '状态', 'select', ['pass', 'partial', 'blocked', 'done']], ['value', '核心数据', 'text'], ['summary', '结果摘要', 'textarea']],
@@ -55,7 +60,7 @@ const editorSections = {
     create: () => ({ name: '新组件', branch: 'main', commit: '', note: '' })
   }
 };
-const editorSectionOrder = ['meta', 'summary', 'currentWork', 'plans', 'results', 'versions', 'released'];
+const editorSectionOrder = ['meta', 'summary', 'currentWork', 'plans', 'operatorBacklog', 'results', 'versions', 'released'];
 
 const escapeHtml = (value = '') => String(value)
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
@@ -73,7 +78,7 @@ function normalizeStageStatus(status) {
 }
 
 function validateData(data) {
-  const arrays = ['summary', 'released', 'currentWork', 'plans', 'results', 'versions'];
+  const arrays = ['summary', 'released', 'currentWork', 'plans', 'operatorBacklog', 'results', 'versions'];
   if (!data || typeof data.meta !== 'object') throw new Error('缺少基本信息 meta。');
   arrays.forEach(key => { if (!Array.isArray(data[key])) throw new Error(`缺少列表 ${key}。`); });
 }
@@ -101,6 +106,7 @@ function migrateLocalData(localData) {
     delete next.deliverables;
     return next;
   });
+  migrated.operatorBacklog = clone(repositoryData.operatorBacklog || []);
   repositoryData.released.slice().reverse().forEach(item => {
     if (!migrated.released.some(candidate => candidate.title === item.title)) migrated.released.unshift(clone(item));
   });
@@ -141,7 +147,7 @@ function render() {
   document.querySelector('#lastUpdated').textContent = boardData.meta.lastUpdated;
   document.querySelector('#owner').textContent = boardData.meta.owner;
   document.title = boardData.meta.title;
-  renderSummary(); renderReleased(); renderCurrentWork(); renderPlans(); renderResults(); renderVersions();
+  renderSummary(); renderReleased(); renderCurrentWork(); renderPlans(); renderOperatorBacklog(); renderResults(); renderVersions();
 }
 
 function renderSummary() {
@@ -248,6 +254,48 @@ function renderPlans() {
       <div class="card-save-bar"><span class="save-state">${dirty ? '有尚未保存的修改' : '内容已保存'}</span><button type="button" class="save-card-button ${dirty ? 'needs-save' : ''}" data-save-plan="${index}">${dirty ? '保存修改' : '已保存'}</button></div>
     </article>`;
   }).join('') || emptyState('还没有版本发布计划。');
+}
+
+function renderOperatorBacklog() {
+  const items = boardData.operatorBacklog || [];
+  const cards = items.map((op, index) => `
+    <article class="op-item" data-op-card="${index}">
+      <button type="button" class="op-remove" data-op-remove="${index}" aria-label="删除算子 ${escapeHtml(op.name)}">×</button>
+      <h4 class="op-name editable-text" contenteditable="plaintext-only" data-op-field="name" role="textbox">${escapeHtml(op.name)}</h4>
+      <div class="op-meta">
+        <label><span>标记</span><input type="text" data-op-field="status" value="${escapeHtml(op.status)}" placeholder="-" /></label>
+        <label><span>优先级</span><input type="text" data-op-field="priority" value="${escapeHtml(op.priority)}" placeholder="-" /></label>
+        <label><span>负责人</span><input type="text" data-op-field="owner" value="${escapeHtml(op.owner)}" placeholder="-" /></label>
+      </div>
+      <p class="op-note editable-text" contenteditable="plaintext-only" data-op-field="note" role="textbox" data-placeholder="点击填写调优/备注">${escapeHtml(op.note)}</p>
+      <div class="op-extra">
+        <label><span>依赖</span><input type="text" data-op-field="dependency" value="${escapeHtml(op.dependency)}" placeholder="-" /></label>
+        <label><span>评论</span><input type="text" data-op-field="comment" value="${escapeHtml(op.comment)}" placeholder="-" /></label>
+      </div>
+    </article>`).join('');
+  document.querySelector('#operatorBacklogList').innerHTML = `${cards}<button type="button" class="op-add" data-op-add><span>＋</span><b>添加算子</b></button>`;
+}
+
+function addBacklogOperator() {
+  boardData.operatorBacklog.push(editorSections.operatorBacklog.create());
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  renderOperatorBacklog();
+  requestAnimationFrame(() => {
+    const name = document.querySelector('.op-item:last-child .op-name');
+    name?.focus();
+    const range = document.createRange();
+    range.selectNodeContents(name);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  });
+}
+
+function removeBacklogOperator(index) {
+  if (!confirm(`确认删除算子“${boardData.operatorBacklog[index].name}”？`)) return;
+  boardData.operatorBacklog.splice(index, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+  renderOperatorBacklog();
 }
 
 function renderResults() {
@@ -563,6 +611,9 @@ document.querySelector('main').addEventListener('click', event => {
     const removeFeature = event.target.closest('[data-plan-remove-feature]');
     if (removeFeature) return removePlanFeature(planIndex, Number(removeFeature.dataset.planRemoveFeature));
   }
+  if (event.target.closest('[data-op-add]')) return addBacklogOperator();
+  const opRemove = event.target.closest('[data-op-remove]');
+  if (opRemove) return removeBacklogOperator(Number(opRemove.dataset.opRemove));
   const deleteTask = event.target.closest('[data-delete-task]');
   if (deleteTask) return deleteWorkCard(Number(deleteTask.dataset.deleteTask));
   const card = event.target.closest('[data-task-card]');
@@ -650,6 +701,13 @@ document.querySelector('main').addEventListener('input', event => {
     boardData.plans[planIndex].operators[operatorIndex].name = event.target.textContent.trim();
     return markPlanDirty(planIndex, planInputCard);
   }
+  const opInputCard = event.target.closest('[data-op-card]');
+  if (opInputCard && event.target.matches('[data-op-field]')) {
+    const opIndex = Number(opInputCard.dataset.opCard);
+    boardData.operatorBacklog[opIndex][event.target.dataset.opField] = event.target.isContentEditable ? event.target.textContent.trim() : event.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+    return;
+  }
   if (event.target.matches('[data-inline-field]')) updateInlineTaskControl(event.target);
   if (event.target.matches('[data-inline-stage-field]')) updateInlineStageControl(event.target);
 });
@@ -672,6 +730,13 @@ document.querySelector('main').addEventListener('change', event => {
       if (label) label.classList.toggle('is-done', event.target.checked);
       return markPlanDirty(planIndex, planCard);
     }
+  }
+  const opChangeCard = event.target.closest('[data-op-card]');
+  if (opChangeCard && event.target.matches('[data-op-field]') && !event.target.isContentEditable) {
+    const opIndex = Number(opChangeCard.dataset.opCard);
+    boardData.operatorBacklog[opIndex][event.target.dataset.opField] = event.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
+    return;
   }
   const card = event.target.closest('[data-task-card]');
   if (card && event.target.matches('[data-card-select]')) {
@@ -716,7 +781,7 @@ document.querySelector('main').addEventListener('keydown', event => {
     const planCard = event.target.closest('[data-plan-card]');
     return addPlanFeature(Number(planCard.dataset.planCard), event.target.value);
   }
-  if (event.target.matches('.plan-version, .plan-title, .operator-name') && event.key === 'Enter') {
+  if (event.target.matches('.plan-version, .plan-title, .operator-name, .op-name') && event.key === 'Enter') {
     event.preventDefault();
     return event.target.blur();
   }

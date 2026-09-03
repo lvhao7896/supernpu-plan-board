@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 8,
+    "dataRevision": 9,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -333,12 +333,30 @@
         "生成完整 PipeView 与 SwimLane"
       ],
       "operators": [
-        { "name": "M32/M16 Vector 算子", "done": false },
-        { "name": "Subview RowSum", "done": false },
-        { "name": "MXFP4/MXFP8 MatMul", "done": false },
-        { "name": "HIFP4/HIFP8 MatMul", "done": false },
-        { "name": "FP8 FlashAttention", "done": false },
-        { "name": "FIXP FlashAttention", "done": false }
+        {
+          "name": "M32/M16 Vector 算子",
+          "done": false
+        },
+        {
+          "name": "Subview RowSum",
+          "done": false
+        },
+        {
+          "name": "MXFP4/MXFP8 MatMul",
+          "done": false
+        },
+        {
+          "name": "HIFP4/HIFP8 MatMul",
+          "done": false
+        },
+        {
+          "name": "FP8 FlashAttention",
+          "done": false
+        },
+        {
+          "name": "FIXP FlashAttention",
+          "done": false
+        }
       ]
     }
   ],
@@ -409,6 +427,350 @@
       "branch": "codex/pr-0.58.4-shared-model",
       "commit": "762a72c34305",
       "note": "gfrun/gfsim，含本地修改"
+    }
+  ],
+  "operatorBacklog": [
+    {
+      "name": "fa-bf16/fp32-vecfp32",
+      "status": "Y",
+      "priority": "",
+      "owner": "-",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-mxfp8-vector fp32",
+      "status": "",
+      "priority": "2",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-mxfp4-vector bf16",
+      "status": "",
+      "priority": "2",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-hif8 - vector f32",
+      "status": "",
+      "priority": "4",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-fp8 - vector f32/bf16",
+      "status": "?",
+      "priority": "",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-hi4 - vector bf16 一阶",
+      "status": "",
+      "priority": "3",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "fa-hi4 - vector bf16 with fixp",
+      "status": "",
+      "priority": "5",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "qsmla - A16C8",
+      "status": "",
+      "priority": "3",
+      "owner": "谢逍如",
+      "note": "",
+      "dependency": "gather/反量化",
+      "comment": ""
+    },
+    {
+      "name": "qsmla - A8C4",
+      "status": "",
+      "priority": "3",
+      "owner": "谢逍如",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "rms_norm - bf16",
+      "status": "Y",
+      "priority": "",
+      "owner": "-",
+      "note": "目前按照ND格式实现；\n后续切换至m32/m16/n8",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "dynamic quant - mxfp 8/4",
+      "status": "",
+      "priority": "1",
+      "owner": "谢逍如",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "dynamic quant - hif4",
+      "status": "",
+      "priority": "1",
+      "owner": "谢逍如",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "topK",
+      "status": "",
+      "priority": "1",
+      "owner": "谢逍如",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "lightning indexer - A8C8",
+      "status": "",
+      "priority": "3",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "topK实现",
+      "comment": ""
+    },
+    {
+      "name": "lightning indexer - A4C4 - vec fp32",
+      "status": "",
+      "priority": "3",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "topK实现",
+      "comment": ""
+    },
+    {
+      "name": "lightning indexer - A4C4 - bf16",
+      "status": "",
+      "priority": "3",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "topK实现",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - fp32",
+      "status": "Y",
+      "priority": "",
+      "owner": "-",
+      "note": "8.21\n8.20 debug tlsu store；算子尝试调整mnk-loop减少tload压力；算子尝试调大shape；isa后续拓宽size encoding\n8.19 合入tlsu pmu，对齐gmatmul指令shape\n8.18 shared treg 访问异常；已修正",
+      "dependency": "",
+      "comment": "1:2:8的情况下，只给m=128/shared_treg_bw=128，mte1 bound\nmac_cycle=128*N*K/32768\nmte1_cycle=(128+N)*K*0.5/128\nmac_cycle/mte1_cycle = N/(128+N)\ncta pair"
+    },
+    {
+      "name": "gelu",
+      "status": "Y",
+      "priority": "5",
+      "owner": "-",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - bf16/fp16",
+      "status": "Y",
+      "priority": "",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - fp8",
+      "status": "Y",
+      "priority": "",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - hif8",
+      "status": "",
+      "priority": "1",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - mxfp8/mxfp4",
+      "status": "",
+      "priority": "1",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "scale layout: 也要考虑vector是否好实现",
+      "comment": ""
+    },
+    {
+      "name": "group matmul - hif4",
+      "status": "",
+      "priority": "1",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "scale layout: 也要考虑vector是否好实现",
+      "comment": ""
+    },
+    {
+      "name": "Convolution",
+      "status": "",
+      "priority": "",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "im2col",
+      "comment": ""
+    },
+    {
+      "name": "group norm gradient",
+      "status": "",
+      "priority": "",
+      "owner": "吕昊",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "cumsum",
+      "status": "",
+      "priority": "subview写？",
+      "owner": "",
+      "note": "需求：1维/2维",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "transpose 5D",
+      "status": "",
+      "priority": "4",
+      "owner": "",
+      "note": "?在哪里做",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "transpose 2D",
+      "status": "",
+      "priority": "",
+      "owner": "",
+      "note": "?在哪里做",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "concat",
+      "status": "",
+      "priority": "5",
+      "owner": "",
+      "note": "?在哪里做",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "slice",
+      "status": "",
+      "priority": "5",
+      "owner": "",
+      "note": "?在哪里做",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "hash table",
+      "status": "",
+      "priority": "6",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "pow",
+      "status": "",
+      "priority": "6",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "argmax",
+      "status": "",
+      "priority": "?",
+      "owner": "",
+      "note": "返回值表达？",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "padding",
+      "status": "",
+      "priority": "mirror?",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "interpolation",
+      "status": "",
+      "priority": "?",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "gather/scatter",
+      "status": "ubm?",
+      "priority": "",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "MegaMoE",
+      "status": "理论计算",
+      "priority": "",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
+    },
+    {
+      "name": "DeepEP",
+      "status": "理论计算",
+      "priority": "",
+      "owner": "",
+      "note": "",
+      "dependency": "",
+      "comment": ""
     }
   ]
 }
