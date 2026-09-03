@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 12,
+    "dataRevision": 13,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -326,8 +326,8 @@
       "target": "2026-09-03",
       "status": "in_progress",
       "priority": "P0",
-      "title": "",
-      "description": "1.支持 M32/M16 layout for vector；\n2.支持subview特性；\n3.支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；\n4.支持fixpipe特性， FA fixpipe优化；",
+      "title": "layout和fixp特性支持",
+      "description": "1.支持 M32/M16 layout for vector；\n2.支持subview特性；(推迟）\n3.支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；\n4.支持fixpipe特性， FA fixpipe优化；",
       "version": "release_ver0903",
       "features": [
         "支持 M32/M16 layout for vector；",
@@ -342,36 +342,20 @@
           "done": true
         },
         {
-          "name": "Subview RowSum",
-          "done": false
-        },
-        {
           "name": "MXFP4/MXFP8 MatMul",
           "done": true
         },
         {
           "name": "HIFP4/HIFP8 MatMul",
-          "done": false
+          "done": true
         },
         {
           "name": "FP8 matmul/FlashAttention",
           "done": true
         },
         {
-          "name": "FIXP FlashAttention",
+          "name": "FIXP rowmax FlashAttention",
           "done": true
-        },
-        {
-          "name": "MXFP4/MXFP8 FA",
-          "done": false
-        },
-        {
-          "name": "HIFP4/HIFP8 FA",
-          "done": false
-        },
-        {
-          "name": "subview FA",
-          "done": false
         }
       ]
     },
@@ -380,17 +364,24 @@
       "target": "2026-09-04",
       "status": "planned",
       "priority": "P1",
-      "title": "核心发布算子 Golden 100%",
+      "title": "subview",
       "description": "固定 MatMul、FA、FlashMLA、RMSNorm、Reduction 与数据搬运代表组合。",
       "version": "release_ver0912",
-      "features": [
-        "MatMul、FA、FlashMLA Golden 校验",
-        "RMSNorm 与 Reduction Golden 校验",
-        "数据搬运代表用例",
-        "PASS/FAIL 清单与误差摘要",
-        "工具链和模型版本指纹"
-      ],
-      "operators": []
+      "features": [],
+      "operators": [
+        {
+          "name": "subview FA",
+          "done": false
+        },
+        {
+          "name": "HIFP4/HIFP8 FA",
+          "done": false
+        },
+        {
+          "name": "MXFP4/MXFP8 FA",
+          "done": false
+        }
+      ]
     }
   ],
   "results": [
