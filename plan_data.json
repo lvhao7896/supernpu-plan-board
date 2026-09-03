@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 10,
+    "dataRevision": 11,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -327,10 +327,10 @@
       "title": "subview和fixpipe适配",
       "description": "1.支持 M32/M16 layout for vector；\n2.支持subview特性；\n3.支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；\n4.支持fixpipe特性， FA fixpipe优化；",
       "features": [
-        "CUBE_M32_TO_ND 写回支持",
-        "四 PE Shared TLOAD/GMMA 同步修复",
-        "FP32 与 BF16 FA 执行到结束",
-        "生成完整 PipeView 与 SwimLane"
+        "支持 M32/M16 layout for vector；",
+        "支持subview特性；",
+        "支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；",
+        "支持fixpipe特性， FA fixpipe优化；"
       ],
       "operators": [
         {
