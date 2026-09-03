@@ -229,7 +229,7 @@ function renderInlineStage(stage, stageIndex) {
 }
 
 function renderPlans() {
-  document.querySelector('#planList').innerHTML = boardData.plans.map((item, index) => {
+  const cards = boardData.plans.map((item, index) => {
     const dirty = dirtyPlans.has(index);
     const operators = Array.isArray(item.operators) ? item.operators : [];
     const features = Array.isArray(item.features) ? item.features : [];
@@ -253,7 +253,8 @@ function renderPlans() {
       </div>
       <div class="card-save-bar"><span class="save-state">${dirty ? '有尚未保存的修改' : '内容已保存'}</span><button type="button" class="save-card-button ${dirty ? 'needs-save' : ''}" data-save-plan="${index}">${dirty ? '保存修改' : '已保存'}</button></div>
     </article>`;
-  }).join('') || emptyState('还没有版本发布计划。');
+  }).join('');
+  document.querySelector('#planList').innerHTML = `${cards || emptyState('还没有版本发布计划。')}<button type="button" class="work-card-add" data-add-plan-card aria-label="快速添加版本发布计划"><span>＋</span><b>添加发布计划</b><small>${boardData.plans.length ? '在列表末尾创建' : '当前还没有发布计划'}</small></button>`;
 }
 
 function renderOperatorBacklog() {
@@ -333,6 +334,14 @@ function addWorkCard() {
   document.querySelectorAll('#statusFilters button').forEach(button => button.classList.toggle('active', button.dataset.status === 'all'));
   renderCurrentWork();
   requestAnimationFrame(() => document.querySelector(`[data-task-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+}
+
+function addPlanCard() {
+  boardData.plans.push(editorSections.plans.create());
+  const index = boardData.plans.length - 1;
+  dirtyPlans.add(index);
+  renderPlans();
+  requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 }
 
 async function persistToServer() {
@@ -623,6 +632,7 @@ document.querySelector('#quickAddTaskButton').addEventListener('click', addWorkC
 document.querySelectorAll('[data-editor-section]').forEach(button => button.addEventListener('click', () => openEditor(button.dataset.editorSection)));
 document.querySelector('main').addEventListener('click', event => {
   if (event.target.closest('[data-add-work-card]')) return addWorkCard();
+  if (event.target.closest('[data-add-plan-card]')) return addPlanCard();
   const saveTask = event.target.closest('[data-save-task]');
   if (saveTask) return saveWorkCard(Number(saveTask.dataset.saveTask));
   const savePlan = event.target.closest('[data-save-plan]');
