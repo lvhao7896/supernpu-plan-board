@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 11,
+    "dataRevision": 12,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -198,7 +198,7 @@
         },
         {
           "name": "gfrun",
-          "status": "planned"
+          "status": "in_progress"
         }
       ],
       "currentIssueSummary": "",
@@ -343,22 +343,30 @@
         },
         {
           "name": "MXFP4/MXFP8 MatMul",
-          "done": false
+          "done": true
         },
         {
           "name": "HIFP4/HIFP8 MatMul",
           "done": false
         },
         {
-          "name": "FP8 FlashAttention",
-          "done": false
+          "name": "FP8 matmul/FlashAttention",
+          "done": true
         },
         {
           "name": "FIXP FlashAttention",
+          "done": true
+        },
+        {
+          "name": "MXFP4/MXFP8 FA",
           "done": false
         },
         {
-          "name": "新算子",
+          "name": "HIFP4/HIFP8 FA",
+          "done": false
+        },
+        {
+          "name": "subview FA",
           "done": false
         }
       ]
