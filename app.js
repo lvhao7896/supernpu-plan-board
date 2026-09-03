@@ -10,6 +10,7 @@ let inlineTaskDraft = null;
 let draggedTaskIndex = null;
 const dirtyTasks = new Set();
 const dirtyPlans = new Set();
+const newPlans = new Set();
 
 const statusLabels = {
   in_progress: '进行中', blocked: '问题阻塞', planned: '待开始',
@@ -234,7 +235,12 @@ function renderInlineStage(stage, stageIndex) {
 function renderPlans() {
   const planOrder = boardData.plans
     .map((item, index) => ({ item, index }))
-    .sort((a, b) => (a.item.target || '').localeCompare(b.item.target || ''));
+    .sort((a, b) => {
+      const na = newPlans.has(a.index), nb = newPlans.has(b.index);
+      if (na !== nb) return na ? 1 : -1;      // 新建未保存的排末尾
+      if (na && nb) return a.index - b.index; // 同为新建按添加顺序
+      return (a.item.target || '').localeCompare(b.item.target || '');
+    });
   const cards = planOrder.map(({ item, index }) => {
     const dirty = dirtyPlans.has(index);
     const operators = Array.isArray(item.operators) ? item.operators : [];
@@ -346,6 +352,7 @@ function addPlanCard() {
   boardData.plans.push(editorSections.plans.create());
   const index = boardData.plans.length - 1;
   dirtyPlans.add(index);
+  newPlans.add(index);
   renderPlans();
   requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 }
@@ -387,6 +394,7 @@ function savePlanCard(index) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(boardData));
   persistToServer();
   dirtyPlans.delete(index);
+  newPlans.delete(index);
   renderPlans();
   requestAnimationFrame(() => document.querySelector(`[data-plan-card="${index}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 }
