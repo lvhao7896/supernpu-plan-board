@@ -156,7 +156,10 @@ function renderSummary() {
 }
 
 function renderReleased() {
-  document.querySelector('#releasedList').innerHTML = boardData.released.map((item, index) => `
+  const releasedOrder = boardData.released
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (b.item.date || '').localeCompare(a.item.date || ''));
+  document.querySelector('#releasedList').innerHTML = releasedOrder.map(({ item, index }) => `
     <article class="release-item"><button type="button" class="card-edit" data-edit-record="released" data-index="${index}" aria-label="编辑发布特性 ${escapeHtml(item.title)}">编辑</button><time class="release-date">${escapeHtml(item.date)}</time><div class="release-content"><h3>${escapeHtml(item.title)} <span class="tag">${escapeHtml(item.version)}</span></h3><p>${escapeHtml(item.description)}</p><p class="release-result">结果：${escapeHtml(item.result)}</p></div><div class="tag-list">${(item.tags || []).map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}</div></article>`).join('') || emptyState('还没有发布记录。');
 }
 
@@ -229,7 +232,10 @@ function renderInlineStage(stage, stageIndex) {
 }
 
 function renderPlans() {
-  const cards = boardData.plans.map((item, index) => {
+  const planOrder = boardData.plans
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => (a.item.target || '').localeCompare(b.item.target || ''));
+  const cards = planOrder.map(({ item, index }) => {
     const dirty = dirtyPlans.has(index);
     const operators = Array.isArray(item.operators) ? item.operators : [];
     const features = Array.isArray(item.features) ? item.features : [];
