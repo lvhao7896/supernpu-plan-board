@@ -261,11 +261,9 @@ function renderOperatorBacklog() {
   const cards = items.map((op, index) => `
     <article class="op-item" data-op-card="${index}">
       <button type="button" class="op-remove" data-op-remove="${index}" aria-label="删除算子 ${escapeHtml(op.name)}">×</button>
-      <h4 class="op-name editable-text" contenteditable="plaintext-only" data-op-field="name" role="textbox">${escapeHtml(op.name)}</h4>
-      <div class="op-meta">
-        <label><span>标记</span><input type="text" data-op-field="status" value="${escapeHtml(op.status)}" placeholder="-" /></label>
-        <label><span>优先级</span><input type="text" data-op-field="priority" value="${escapeHtml(op.priority)}" placeholder="-" /></label>
-        <label><span>负责人</span><input type="text" data-op-field="owner" value="${escapeHtml(op.owner)}" placeholder="-" /></label>
+      <div class="op-head-row">
+        <h4 class="op-name editable-text" contenteditable="plaintext-only" data-op-field="name" role="textbox">${escapeHtml(op.name)}</h4>
+        <label class="op-priority"><span>优先级</span><input type="text" data-op-field="priority" value="${escapeHtml(op.priority)}" placeholder="-" /></label>
       </div>
       <p class="op-note editable-text" contenteditable="plaintext-only" data-op-field="note" role="textbox" data-placeholder="点击填写调优/备注">${escapeHtml(op.note)}</p>
       <div class="op-extra">

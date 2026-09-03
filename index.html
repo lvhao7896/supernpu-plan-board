@@ -13,7 +13,7 @@
     <meta name="twitter:description" content="集中维护算子工作状态、版本发布计划、发布特性与验证结果。" />
     <meta name="twitter:image" content="https://pto-isa.github.io/SuperNPUBench/og.png" />
     <title>SuperNPUBench 工作计划看板</title>
-    <link rel="stylesheet" href="styles.css?v=3" />
+    <link rel="stylesheet" href="styles.css?v=4" />
   </head>
   <body>
     <header class="app-header">
@@ -45,13 +45,15 @@
 
       <section class="board-section" id="plans">
         <div class="section-head"><div><span>02</span><h2>版本发布计划</h2></div><div class="section-tools"><p>按版本维护发布内容、特性和预计增加的算子。</p><button class="inline-edit" data-editor-section="plans">编辑本节</button></div></div>
-        <div class="plan-list" id="planList"></div>
-        <div class="op-backlog-card">
-          <div class="op-backlog-head">
-            <div><span>OPERATOR BACKLOG</span><h3>算子规划总表</h3><p>跨版本维护全部算子的状态、负责人、优先级与备注；原位编辑即时保存到当前浏览器。</p></div>
-            <button class="inline-edit" data-editor-section="operatorBacklog">批量管理</button>
-          </div>
-          <div class="op-backlog-grid" id="operatorBacklogList"></div>
+        <div class="plans-layout">
+          <div class="plan-list" id="planList"></div>
+          <aside class="op-backlog-card">
+            <div class="op-backlog-head">
+              <div><span>OPERATOR BACKLOG</span><h3>算子规划总表</h3><p>跨版本维护全部算子的优先级、备注与依赖；原位编辑即时保存到当前浏览器。</p></div>
+              <button class="inline-edit" data-editor-section="operatorBacklog">批量管理</button>
+            </div>
+            <div class="op-backlog-grid" id="operatorBacklogList"></div>
+          </aside>
         </div>
       </section>
       <section class="board-section" id="results">
@@ -84,6 +86,6 @@
     </dialog>
 
     <footer><span>SuperNPUBench Plan Board</span><p>页面数据由 <code>plan_data.json</code> 驱动 · 浏览器编辑保存在 localStorage</p></footer>
-    <script src="app.js?v=3" defer></script>
+    <script src="app.js?v=4" defer></script>
   </body>
 </html>
