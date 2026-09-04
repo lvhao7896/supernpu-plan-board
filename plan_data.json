@@ -1,6 +1,6 @@
 {
   "meta": {
-    "dataRevision": 16,
+    "dataRevision": 17,
     "title": "SuperNPUBench 工作计划看板",
     "subtitle": "维护算子工作状态、计划、验证结果与版本进展",
     "owner": "PTO Operator Team",
@@ -35,7 +35,7 @@
   ],
   "released": [
     {
-      "date": "2026-09-03",
+      "date": "2026-08-28",
       "title": "大 Tile Size 与 Shared/Local Tile 分级支持",
       "version": "main",
       "description": "支持 local tile 128B–8KB、shared tile 512B–32KB；从 4PE core 视角统一覆盖 512B–32KB。Shared tile 可由单个 PE 加载并通过 pe_mask 在 core 内共享，local tile 由各 PE 并行持有自己的局部数据。",
@@ -323,12 +323,12 @@
   "plans": [
     {
       "id": "PLAN-01",
-      "target": "2026-09-03",
+      "target": "2026-09-04",
       "status": "in_progress",
       "priority": "P0",
       "title": "layout和fixp特性支持",
       "description": "1.支持 M32/M16 layout for vector；\n2.支持subview特性；(推迟）\n3.支持mxfp4/8，hifp4/hifp8 matmul， fp8 FA；\n4.支持fixpipe特性， FA fixpipe优化；",
-      "version": "release_ver0903",
+      "version": "release_ver0904",
       "features": [
         "支持 M32/M16 layout for vector；",
         "支持subview特性；",
@@ -338,8 +338,8 @@
       ],
       "operators": [
         {
-          "name": "M32/M16 Vector 算子，卡在fa matmul不支持vector m32输入",
-          "done": false
+          "name": "M32/M16 Vector 算子",
+          "done": true
         },
         {
           "name": "MXFP4/MXFP8 MatMul",
@@ -355,18 +355,22 @@
         },
         {
           "name": "FIXP rowmax FlashAttention",
+          "done": false
+        },
+        {
+          "name": "多个shape配置，大kernel+小tile",
           "done": true
         }
       ]
     },
     {
       "id": "PLAN-02",
-      "target": "2026-09-04",
+      "target": "2026-09-05",
       "status": "planned",
       "priority": "P1",
       "title": "subview特性",
       "description": "固定 MatMul、FA、FlashMLA、RMSNorm、Reduction 与数据搬运代表组合。",
-      "version": "release_ver0904",
+      "version": "release_ver0905",
       "features": [
         "subview特性"
       ],
@@ -431,10 +435,6 @@
           "done": false
         },
         {
-          "name": "hash",
-          "done": false
-        },
-        {
           "name": "qli",
           "done": false
         },
@@ -444,6 +444,30 @@
         },
         {
           "name": "sfa",
+          "done": false
+        },
+        {
+          "name": "hash",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "PLAN-2676",
+      "version": "release_verXXXX",
+      "target": "2026-09-13",
+      "status": "planned",
+      "priority": "P1",
+      "title": "复杂调度，element_if",
+      "description": "",
+      "features": [],
+      "operators": [
+        {
+          "name": "hash",
+          "done": false
+        },
+        {
+          "name": "predicate测例",
           "done": false
         }
       ]
